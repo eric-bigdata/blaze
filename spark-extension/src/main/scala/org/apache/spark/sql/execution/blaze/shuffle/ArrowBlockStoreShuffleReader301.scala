@@ -67,6 +67,7 @@ class ArrowBlockStoreShuffleReader301[K, C](
       context,
       SparkEnv.get.blockManager.blockStoreClient,
       SparkEnv.get.blockManager,
+      SparkEnv.get.mapOutputTracker,
       blocksByAddress(),
       (_, inputStream) => inputStream,
       // Note: we use getSizeAsMb when no suffix is provided for backwards compatibility
@@ -74,8 +75,11 @@ class ArrowBlockStoreShuffleReader301[K, C](
       SparkEnv.get.conf.get(config.REDUCER_MAX_REQS_IN_FLIGHT),
       SparkEnv.get.conf.get(config.REDUCER_MAX_BLOCKS_IN_FLIGHT_PER_ADDRESS),
       SparkEnv.get.conf.get(config.MAX_REMOTE_BLOCK_SIZE_FETCH_TO_MEM),
+      SparkEnv.get.conf.get(config.SHUFFLE_MAX_ATTEMPTS_ON_NETTY_OOM),
       SparkEnv.get.conf.get(config.SHUFFLE_DETECT_CORRUPT),
       SparkEnv.get.conf.get(config.SHUFFLE_DETECT_CORRUPT_MEMORY),
+      SparkEnv.get.conf.get(config.SHUFFLE_CHECKSUM_ENABLED),
+      SparkEnv.get.conf.get(config.SHUFFLE_CHECKSUM_ALGORITHM),
       readMetrics,
       fetchContinuousBlocksInBatch).toCompletionIterator
   }

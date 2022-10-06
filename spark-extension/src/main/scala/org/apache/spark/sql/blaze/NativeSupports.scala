@@ -132,7 +132,7 @@ object NativeSupports extends Logging {
       exec: AQEShuffleReadExec,
       output: Seq[Attribute]): NativeRDD = {
     exec match {
-      case AQEShuffleReadExec(_, _, _) =>
+      case AQEShuffleReadExec(_, _) =>
         val inputShuffledRowRDD = exec.execute().asInstanceOf[ShuffledRowRDD]
         val shuffleHandle = inputShuffledRowRDD.dependency.shuffleHandle
 
@@ -167,7 +167,7 @@ object NativeSupports extends Logging {
                     sqlMetricsReporter)
                   .asInstanceOf[ArrowBlockStoreShuffleReader301[_, _]]
 
-              case PartialReducerPartitionSpec(reducerIndex, startMapIndex, endMapIndex) =>
+              case PartialReducerPartitionSpec(reducerIndex, startMapIndex, endMapIndex, _) =>
                 SparkEnv.get.shuffleManager
                   .getReader(
                     shuffleHandle,

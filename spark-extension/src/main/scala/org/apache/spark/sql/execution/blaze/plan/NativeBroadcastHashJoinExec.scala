@@ -26,7 +26,7 @@ import org.apache.spark.sql.catalyst.plans.physical.Partitioning
 import org.apache.spark.sql.execution.BinaryExecNode
 import org.apache.spark.sql.execution.SparkPlan
 import org.apache.spark.sql.execution.joins.BroadcastHashJoinExec
-import org.apache.spark.sql.execution.joins.BuildLeft
+import org.apache.spark.sql.catalyst.optimizer.BuildLeft
 import org.apache.spark.sql.execution.metric.SQLMetric
 import org.apache.spark.Partition
 import org.apache.spark.sql.blaze.MetricNode

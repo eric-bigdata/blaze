@@ -237,7 +237,7 @@ case class ArrowBroadcastExchangeExec(mode: BroadcastMode, override val child: S
   @transient
   private lazy val nativeRelationFuture: Future[Broadcast[Array[Array[Byte]]]] = {
     SQLExecution.withThreadLocalCaptured[Broadcast[Array[Array[Byte]]]](
-      sqlContext.sparkSession,
+     session,
       BroadcastExchangeExec.executionContext) {
       try {
         sparkContext.setJobGroup(

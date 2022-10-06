@@ -143,7 +143,7 @@ class ArrowShuffleManager301(conf: SparkConf) extends ShuffleManager with Loggin
       metrics: ShuffleReadMetricsReporter): ShuffleReader[K, C] = {
     val blocksByAddress = () =>
       SparkEnv.get.mapOutputTracker
-        .getMapSizesByExecutorId(handle.shuffleId, startPartition, endPartition)
+        .getMapSizesByExecutorId(handle.shuffleId, 0, Int.MaxValue, startPartition, endPartition)
     new ArrowBlockStoreShuffleReader301(
       handle.asInstanceOf[BaseShuffleHandle[K, _, C]],
       blocksByAddress,
@@ -161,7 +161,7 @@ class ArrowShuffleManager301(conf: SparkConf) extends ShuffleManager with Loggin
       context: TaskContext,
       metrics: ShuffleReadMetricsReporter): ShuffleReader[K, C] = {
     val blocksByAddress = () =>
-      SparkEnv.get.mapOutputTracker.getMapSizesByRange(
+      SparkEnv.get.mapOutputTracker.getMapSizesByExecutorId(
         handle.shuffleId,
         startMapIndex,
         endMapIndex,

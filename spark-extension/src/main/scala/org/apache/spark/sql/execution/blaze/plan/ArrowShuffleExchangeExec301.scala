@@ -43,12 +43,12 @@ import org.apache.spark.sql.execution.blaze.plan.ArrowShuffleExchangeExec301.can
 import org.apache.spark.sql.execution.blaze.shuffle.ArrowBlockStoreShuffleReader301
 import org.apache.spark.sql.execution.blaze.shuffle.ShuffleDependencySchema
 import org.apache.spark.sql.execution.exchange.ShuffleOrigin
+import org.apache.spark.sql.execution.exchange.ENSURE_REQUIREMENTS
 import org.apache.spark.sql.blaze.MetricNode
 import org.apache.spark.sql.blaze.NativeConverters
 import org.apache.spark.sql.blaze.NativeRDD
 import org.apache.spark.sql.blaze.NativeSupports
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.errors.attachTree
 import org.apache.spark.sql.catalyst.expressions.Attribute
 import org.apache.spark.sql.catalyst.expressions.BoundReference
 import org.apache.spark.sql.catalyst.expressions.UnsafeProjection
@@ -198,6 +198,20 @@ case class ArrowShuffleExchangeExec301(
       cachedShuffleRDD
     }
 
+
+  /**
+   * Wraps any exceptions that are thrown while executing `f` in a
+   * [[catalyst.errors.TreeNodeException TreeNodeException]], attaching the provided `tree`.
+   */
+  def attachTree[TreeType <: TreeNode[_], A](tree: TreeType, msg: String = "")(f: => A): A = {
+    try f catch {
+      // SPARK-16748: We do not want SparkExceptions from job failures in the planning phase
+      // to create TreeNodeException. Hence, wrap exception only if it is not SparkException.
+      case NonFatal(e) if !e.isInstanceOf[SparkException] =>
+        throw new TreeNodeException(tree, msg, e)
+    }
+  }
+
   override def doExecuteNative(): NativeRDD = {
     val shuffleHandle = shuffleDependency.shuffleHandle
     val rdd = doExecute()
@@ -241,7 +255,7 @@ case class ArrowShuffleExchangeExec301(
   }
 
   override def doCanonicalize(): SparkPlan =
-    ShuffleExchangeExec(outputPartitioning, child, noUserSpecifiedNumPartition).canonicalized
+    ShuffleExchangeExec(outputPartitioning, child, shuffleOrigin).canonicalized
 }
 
 object ArrowShuffleExchangeExec301 {
@@ -591,10 +605,11 @@ object ArrowShuffleExchangeExec301 {
         metrics(SQLShuffleWriteMetricsReporter.SHUFFLE_RECORDS_WRITTEN) += numWrittenRecords
 
         // commit
-        shuffleBlockResolver.writeIndexFileAndCommit(
+        shuffleBlockResolver.writeMetadataFileAndCommit(
           dep.shuffleId,
           mapId,
           partitionLengths,
+          Array.empty,
           tempDataFilePath.toFile)
         MapStatus.apply(SparkEnv.get.blockManager.shuffleServerId, partitionLengths, mapId)
       }
