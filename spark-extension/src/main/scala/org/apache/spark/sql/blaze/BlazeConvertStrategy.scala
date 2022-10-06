@@ -24,7 +24,7 @@ import org.apache.spark.sql.execution.ProjectExec
 import org.apache.spark.sql.execution.SparkPlan
 import org.apache.spark.sql.execution.joins.SortMergeJoinExec
 import org.apache.spark.sql.execution.FileSourceScanExec
-import org.apache.spark.sql.execution.adaptive.CustomShuffleReaderExec
+import org.apache.spark.sql.execution.adaptive.AQEShuffleReadExec
 import org.apache.spark.sql.execution.adaptive.QueryStageExec
 import org.apache.spark.sql.execution.exchange.Exchange
 import org.apache.spark.sql.execution.CodegenSupport
@@ -266,7 +266,7 @@ object BlazeConvertStrategy extends Logging {
   private def isSuccssorOfExchange(exec: SparkPlan): Boolean = {
     exec.children.forall(child => {
       child.isInstanceOf[Exchange] ||
-        child.isInstanceOf[CustomShuffleReaderExec] ||
+        child.isInstanceOf[AQEShuffleReadExec] ||
         child.isInstanceOf[QueryStageExec]
     })
   }

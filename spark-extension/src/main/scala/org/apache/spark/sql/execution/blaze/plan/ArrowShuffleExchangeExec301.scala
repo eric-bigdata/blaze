@@ -42,6 +42,7 @@ import org.apache.spark.sql.blaze.JniBridge
 import org.apache.spark.sql.execution.blaze.plan.ArrowShuffleExchangeExec301.canUseNativeShuffleWrite
 import org.apache.spark.sql.execution.blaze.shuffle.ArrowBlockStoreShuffleReader301
 import org.apache.spark.sql.execution.blaze.shuffle.ShuffleDependencySchema
+import org.apache.spark.sql.execution.exchange.ShuffleOrigin
 import org.apache.spark.sql.blaze.MetricNode
 import org.apache.spark.sql.blaze.NativeConverters
 import org.apache.spark.sql.blaze.NativeRDD
@@ -78,7 +79,7 @@ import org.blaze.protobuf.ShuffleWriterExecNode
 case class ArrowShuffleExchangeExec301(
     override val outputPartitioning: Partitioning,
     override val child: SparkPlan,
-    noUserSpecifiedNumPartition: Boolean = true)
+    shuffleOrigin: ShuffleOrigin = ENSURE_REQUIREMENTS)
     extends ShuffleExchangeLike
     with NativeSupports {
 
@@ -167,8 +168,7 @@ case class ArrowShuffleExchangeExec301(
 
   // If users specify the num partitions via APIs like `repartition`, we shouldn't change it.
   // For `SinglePartition`, it requires exactly one partition and we can't change it either.
-  def canChangeNumPartitions: Boolean =
-    noUserSpecifiedNumPartition && outputPartitioning != SinglePartition
+  def canChangeNumPartitions: Boolean = outputPartitioning != SinglePartition
 
   override def nodeName: String = "ArrowShuffleExchange"
 

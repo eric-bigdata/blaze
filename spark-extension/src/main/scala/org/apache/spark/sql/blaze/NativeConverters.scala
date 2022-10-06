@@ -275,7 +275,7 @@ object NativeConverters {
 
     def unpackBinaryTypeCast(expr: Expression) =
       expr match {
-        case Cast(inner, BinaryType, _) => inner
+        case Cast(inner, BinaryType, _, _) => inner
         case expr => expr
       }
 
@@ -294,7 +294,7 @@ object NativeConverters {
         }
 
       // cast
-      case Cast(child, dataType, _) =>
+      case Cast(child, dataType, _, _) =>
         buildExprNode {
           _.setCast(
             pb.PhysicalCastNode
@@ -382,11 +382,11 @@ object NativeConverters {
       case LessThan(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Lt")
       case GreaterThanOrEqual(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "GtEq")
       case LessThanOrEqual(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "LtEq")
-      case Add(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Plus")
-      case Subtract(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Minus")
-      case Multiply(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Multiply")
-      case Divide(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Divide")
-      case Remainder(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Modulo")
+      case Add(lhs, rhs, _) => buildBinaryExprNode(lhs, rhs, "Plus")
+      case Subtract(lhs, rhs, _) => buildBinaryExprNode(lhs, rhs, "Minus")
+      case Multiply(lhs, rhs, _) => buildBinaryExprNode(lhs, rhs, "Multiply")
+      case Divide(lhs, rhs, _) => buildBinaryExprNode(lhs, rhs, "Divide")
+      case Remainder(lhs, rhs, _) => buildBinaryExprNode(lhs, rhs, "Modulo")
       case Like(lhs, rhs, '\\') => buildBinaryExprNode(lhs, rhs, "Like")
       case And(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "And")
       case Or(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Or")
@@ -490,15 +490,15 @@ object NativeConverters {
       // aggr
       case Min(_1) => buildAggrExprNode(pb.AggregateFunction.MIN, _1)
       case Max(_1) => buildAggrExprNode(pb.AggregateFunction.MAX, _1)
-      case Sum(_1) => buildAggrExprNode(pb.AggregateFunction.SUM, _1)
-      case Average(_1) => buildAggrExprNode(pb.AggregateFunction.AVG, _1)
+      case Sum(_1, _) => buildAggrExprNode(pb.AggregateFunction.SUM, _1)
+      case Average(_1, _) => buildAggrExprNode(pb.AggregateFunction.AVG, _1)
       case Count(Seq(_1)) => buildAggrExprNode(pb.AggregateFunction.COUNT, _1)
       case Count(_n) if !_n.exists(_.nullable) =>
         buildAggrExprNode(pb.AggregateFunction.COUNT, Literal(1))
-      case VarianceSamp(_1) => buildAggrExprNode(pb.AggregateFunction.VARIANCE, _1)
-      case VariancePop(_1) => buildAggrExprNode(pb.AggregateFunction.VARIANCE_POP, _1)
-      case StddevSamp(_1) => buildAggrExprNode(pb.AggregateFunction.STDDEV, _1)
-      case StddevPop(_1) => buildAggrExprNode(pb.AggregateFunction.STDDEV_POP, _1)
+      case VarianceSamp(_1, _) => buildAggrExprNode(pb.AggregateFunction.VARIANCE, _1)
+      case VariancePop(_1, _) => buildAggrExprNode(pb.AggregateFunction.VARIANCE_POP, _1)
+      case StddevSamp(_1, _) => buildAggrExprNode(pb.AggregateFunction.STDDEV, _1)
+      case StddevPop(_1, _) => buildAggrExprNode(pb.AggregateFunction.STDDEV_POP, _1)
 
       case unsupportedExpression =>
         throw new NotImplementedError(
@@ -548,7 +548,7 @@ object NativeConverters {
 
     def unpackBinaryTypeCast(expr: Expression) =
       expr match {
-        case Cast(inner, BinaryType, _) => inner
+        case Cast(inner, BinaryType, _, _) => inner
         case expr => expr
       }
 
@@ -571,7 +571,7 @@ object NativeConverters {
         }
 
       // cast
-      case Cast(child, dataType, _) =>
+      case Cast(child, dataType, _, _) =>
         buildExprNode {
           _.setCast(
             pb.CastNode
@@ -659,11 +659,11 @@ object NativeConverters {
       case LessThan(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Lt")
       case GreaterThanOrEqual(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "GtEq")
       case LessThanOrEqual(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "LtEq")
-      case Add(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Plus")
-      case Subtract(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Minus")
-      case Multiply(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Multiply")
-      case Divide(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Divide")
-      case Remainder(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Modulo")
+      case Add(lhs, rhs, _) => buildBinaryExprNode(lhs, rhs, "Plus")
+      case Subtract(lhs, rhs, _) => buildBinaryExprNode(lhs, rhs, "Minus")
+      case Multiply(lhs, rhs, _) => buildBinaryExprNode(lhs, rhs, "Multiply")
+      case Divide(lhs, rhs, _) => buildBinaryExprNode(lhs, rhs, "Divide")
+      case Remainder(lhs, rhs, _) => buildBinaryExprNode(lhs, rhs, "Modulo")
       case Like(lhs, rhs, '\\') => buildBinaryExprNode(lhs, rhs, "Like")
       case And(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "And")
       case Or(lhs, rhs) => buildBinaryExprNode(lhs, rhs, "Or")
@@ -760,15 +760,15 @@ object NativeConverters {
       // aggr
       case Min(_1) => buildAggrExprNode(pb.AggregateFunction.MIN, _1)
       case Max(_1) => buildAggrExprNode(pb.AggregateFunction.MAX, _1)
-      case Sum(_1) => buildAggrExprNode(pb.AggregateFunction.SUM, _1)
-      case Average(_1) => buildAggrExprNode(pb.AggregateFunction.AVG, _1)
+      case Sum(_1, _) => buildAggrExprNode(pb.AggregateFunction.SUM, _1)
+      case Average(_1, _) => buildAggrExprNode(pb.AggregateFunction.AVG, _1)
       case Count(Seq(_1)) => buildAggrExprNode(pb.AggregateFunction.COUNT, _1)
       case Count(_n) if !_n.exists(_.nullable) =>
         buildAggrExprNode(pb.AggregateFunction.COUNT, Literal(1))
-      case VarianceSamp(_1) => buildAggrExprNode(pb.AggregateFunction.VARIANCE, _1)
-      case VariancePop(_1) => buildAggrExprNode(pb.AggregateFunction.VARIANCE_POP, _1)
-      case StddevSamp(_1) => buildAggrExprNode(pb.AggregateFunction.STDDEV, _1)
-      case StddevPop(_1) => buildAggrExprNode(pb.AggregateFunction.STDDEV_POP, _1)
+      case VarianceSamp(_1, _) => buildAggrExprNode(pb.AggregateFunction.VARIANCE, _1)
+      case VariancePop(_1, _) => buildAggrExprNode(pb.AggregateFunction.VARIANCE_POP, _1)
+      case StddevSamp(_1, _) => buildAggrExprNode(pb.AggregateFunction.STDDEV, _1)
+      case StddevPop(_1, _) => buildAggrExprNode(pb.AggregateFunction.STDDEV_POP, _1)
 
       case unsupportedExpression =>
         throw new NotImplementedError(s"unsupported exception: ${unsupportedExpression}")

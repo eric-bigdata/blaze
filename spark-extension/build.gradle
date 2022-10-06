@@ -67,9 +67,9 @@ dependencies {
 
 	testImplementation 'org.scalatest:scalatest_2.12:3.2.9'
 
-	compileOnly 'org.scala-lang:scala-library:2.12.10'
-	compileOnly 'org.apache.spark:spark-core_2.12:3.0.3'
-	compileOnly 'org.apache.spark:spark-sql_2.12:3.0.3'
+	compileOnly 'org.scala-lang:scala-library:2.12.15'
+	compileOnly 'org.apache.spark:spark-core_2.12:3.2.1'
+	compileOnly 'org.apache.spark:spark-sql_2.12:3.2.1'
 }
 
 shadowJar {

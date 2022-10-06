@@ -56,10 +56,10 @@ import org.apache.spark.sql.execution.SparkPlan
 import org.apache.spark.sql.execution.blaze.plan.NativeBroadcastHashJoinExec
 import org.apache.spark.sql.execution.blaze.plan.NativeUnionExec
 import org.apache.spark.sql.execution.exchange.BroadcastExchangeExec
-import org.apache.spark.sql.execution.joins.BuildLeft
-import org.apache.spark.sql.execution.joins.BuildRight
+import org.apache.spark.sql.catalyst.optimizer.BuildLeft
+import org.apache.spark.sql.catalyst.optimizer.BuildRight
 import org.apache.spark.sql.execution.ProjectExec
-import org.apache.spark.sql.execution.adaptive.CustomShuffleReaderExec
+import org.apache.spark.sql.execution.adaptive.AQEShuffleReadExec
 import org.apache.spark.sql.execution.adaptive.ShuffleQueryStageExec
 import org.apache.spark.sql.execution.blaze.plan.NativeFilterExec
 import org.apache.spark.sql.execution.exchange.ReusedExchangeExec
@@ -177,8 +177,10 @@ object BlazeConverters extends Logging {
       requiredSchema,
       partitionFilters,
       optionalBucketSet,
+      optionalNumCoalescedBuckets,
       dataFilters,
-      tableIdentifier) = exec
+      tableIdentifier,
+      disableBucketedScan) = exec
     logDebug(s"Converting FileSourceScanExec: ${exec.simpleStringWithNodeId}")
     logDebug(s"  relation: ${relation}")
     logDebug(s"  relation.location: ${relation.location}")
@@ -186,8 +188,10 @@ object BlazeConverters extends Logging {
     logDebug(s"  requiredSchema: ${requiredSchema}")
     logDebug(s"  partitionFilters: ${partitionFilters}")
     logDebug(s"  optionalBucketSet: ${optionalBucketSet}")
+    logDebug(s"  optionalNumCoalescedBuckets: ${optionalNumCoalescedBuckets}")
     logDebug(s"  dataFilters: ${dataFilters}")
     logDebug(s"  tableIdentifier: ${tableIdentifier}")
+    logDebug(s"  disableBucketedScan: ${disableBucketedScan}")
     if (relation.fileFormat.isInstanceOf[ParquetFileFormat]) {
       return NativeParquetScanExec(exec)
     }
@@ -310,7 +314,8 @@ object BlazeConverters extends Logging {
               buildSide,
               condition,
               left,
-              right) =>
+              right,
+              isNullAwareAntiJoin) =>
           var (hashed, hashedKeys, nativeProbed, probedKeys) = buildSide match {
             case BuildRight =>
               val convertedLeft = convertToNative(left)
@@ -487,7 +492,7 @@ object BlazeConverters extends Logging {
     exec match {
       case exec: ShuffleQueryStageExec => needRenameColumns(exec.plan)
       case exec: BroadcastQueryStageExec => needRenameColumns(exec.plan)
-      case exec: CustomShuffleReaderExec => needRenameColumns(exec.child)
+      case exec: AQEShuffleReadExec => needRenameColumns(exec.child)
       case _: NativeParquetScanExec | _: NativeUnionExec | _: ReusedExchangeExec => true
       case _ => false
     }

@@ -32,7 +32,7 @@ import scala.collection.immutable.TreeMap
 import org.apache.spark.sql.execution.SparkPlan
 import org.apache.spark.SparkException
 import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.execution.adaptive.CustomShuffleReaderExec
+import org.apache.spark.sql.execution.adaptive.AQEShuffleReadExec
 import org.apache.spark.sql.execution.adaptive.QueryStageExec
 import org.apache.spark.TaskContext
 import org.apache.spark.internal.Logging
@@ -73,7 +73,7 @@ object NativeSupports extends Logging {
   def isNative(plan: SparkPlan): Boolean =
     plan match {
       case _: NativeSupports => true
-      case plan: CustomShuffleReaderExec => isNative(plan.child)
+      case plan: AQEShuffleReadExec => isNative(plan.child)
       case plan: QueryStageExec => isNative(plan.plan)
       case plan: ReusedExchangeExec => isNative(plan.child)
       case _ => false
@@ -83,7 +83,7 @@ object NativeSupports extends Logging {
   def getUnderlyingNativePlan(plan: SparkPlan): NativeSupports =
     plan match {
       case plan: NativeSupports => plan
-      case plan: CustomShuffleReaderExec => getUnderlyingNativePlan(plan.child)
+      case plan: AQEShuffleReadExec => getUnderlyingNativePlan(plan.child)
       case plan: QueryStageExec => getUnderlyingNativePlan(plan.plan)
       case plan: ReusedExchangeExec => getUnderlyingNativePlan(plan.child)
       case _ => throw new RuntimeException("unreachable: plan is not native")
@@ -93,7 +93,7 @@ object NativeSupports extends Logging {
   def executeNative(plan: SparkPlan): NativeRDD =
     plan match {
       case plan: NativeSupports => plan.doExecuteNative()
-      case plan: CustomShuffleReaderExec => executeNativeCustomShuffleReader(plan, plan.output)
+      case plan: AQEShuffleReadExec => executeNativeCustomShuffleReader(plan, plan.output)
       case plan: QueryStageExec => executeNative(plan.plan)
       case plan: ReusedExchangeExec => executeNative(plan.child)
       case _ => throw new SparkException(s"Underlying plan is not NativeSupports: ${plan}")
@@ -129,10 +129,10 @@ object NativeSupports extends Logging {
       "join_time" -> SQLMetrics.createNanoTimingMetric(sc, "Native.join_time"))
 
   private def executeNativeCustomShuffleReader(
-      exec: CustomShuffleReaderExec,
+      exec: AQEShuffleReadExec,
       output: Seq[Attribute]): NativeRDD = {
     exec match {
-      case CustomShuffleReaderExec(_, _, _) =>
+      case AQEShuffleReadExec(_, _, _) =>
         val inputShuffledRowRDD = exec.execute().asInstanceOf[ShuffledRowRDD]
         val shuffleHandle = inputShuffledRowRDD.dependency.shuffleHandle
 
@@ -157,7 +157,7 @@ object NativeSupports extends Logging {
             val sqlMetricsReporter = taskContext.taskMetrics().createTempShuffleReadMetrics()
             val spec = specField.get(partition).asInstanceOf[ShufflePartitionSpec]
             val reader = spec match {
-              case CoalescedPartitionSpec(startReducerIndex, endReducerIndex) =>
+              case CoalescedPartitionSpec(startReducerIndex, endReducerIndex, _) =>
                 SparkEnv.get.shuffleManager
                   .getReader(
                     shuffleHandle,
@@ -169,7 +169,7 @@ object NativeSupports extends Logging {
 
               case PartialReducerPartitionSpec(reducerIndex, startMapIndex, endMapIndex) =>
                 SparkEnv.get.shuffleManager
-                  .getReaderForRange(
+                  .getReader(
                     shuffleHandle,
                     startMapIndex,
                     endMapIndex,
@@ -181,7 +181,7 @@ object NativeSupports extends Logging {
 
               case PartialMapperPartitionSpec(mapIndex, startReducerIndex, endReducerIndex) =>
                 SparkEnv.get.shuffleManager
-                  .getReaderForRange(
+                  .getReader(
                     shuffleHandle,
                     mapIndex,
                     mapIndex + 1,
