@@ -25,10 +25,10 @@ import scala.collection.JavaConverters._
 import org.apache.spark.shuffle.rdma._
 import org.apache.spark.shuffle.sort._
 
-class RdmaWrapperShuffleData(
+class ArrowRdmaWrapperShuffleData(
     shuffleId: Int,
     numPartitions: Int,
-    rdmaShuffleManager: RdmaShuffleManager) extends Logging {
+    arrowShuffleManager301: ArrowShuffleManager301) extends Logging {
   val rdmaMappedFileByMapIdx = new ConcurrentHashMap[Int, RdmaMappedFile].asScala
 
   def getInputStreams(partitionId: Int): Seq[InputStream] = {
@@ -65,13 +65,13 @@ class RdmaWrapperShuffleData(
 
   def wrapperShuffleDataFile(mapIdx: Int, mapId: Long,
                              lengths: Array[Long]): Unit = {
-    val dataFile = rdmaShuffleManager.shuffleBlockResolver.getDataFile(shuffleId, mapId)
+    val dataFile = arrowShuffleManager301.shuffleBlockResolver.getDataFile(shuffleId, mapId)
 
     synchronized {
 
       val rdmaFile = new RdmaMappedFile(dataFile,
-        rdmaShuffleManager.rdmaShuffleConf.shuffleWriteBlockSize.toInt, lengths,
-        rdmaShuffleManager.getRdmaBufferManager)
+        arrowShuffleManager301.rdmaShuffleConf.shuffleWriteBlockSize.toInt, lengths,
+        arrowShuffleManager301.getRdmaBufferManager)
       // Overwrite and dispose of older file if already exists
       rdmaMappedFileByMapIdx.put(mapIdx, rdmaFile).foreach(_.dispose())
     }

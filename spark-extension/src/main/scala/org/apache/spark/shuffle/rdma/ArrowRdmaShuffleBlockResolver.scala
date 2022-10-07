@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap
 import org.apache.spark.TaskContext
 import org.apache.spark.internal.Logging
 import org.apache.spark.shuffle.{BaseShuffleHandle, IndexShuffleBlockResolver}
-import org.apache.spark.shuffle.rdma.writer.wrapper.RdmaWrapperShuffleData
+import org.apache.spark.shuffle.rdma.writer.wrapper.{ArrowRdmaWrapperShuffleData, RdmaWrapperShuffleData}
 import org.apache.spark.shuffle.sort.{ArrowShuffleManager301, RdmaShuffleManager}
 
 class ArrowRdmaShuffleBlockResolver(arrowShuffleManager301: ArrowShuffleManager301)
@@ -55,7 +55,7 @@ class ArrowRdmaShuffleBlockResolver(arrowShuffleManager301: ArrowShuffleManager3
     val mapIdx = TaskContext.getPartitionId()
     val numPartitions = lengths.length
     rdmaShuffleDataMap.putIfAbsent(shuffleId,
-      new RdmaWrapperShuffleData(shuffleId, numPartitions, arrowShuffleManager301))
+      new ArrowRdmaWrapperShuffleData(shuffleId, numPartitions, arrowShuffleManager301))
 
     val rdmaShuffleData = getRdmaShuffleData(shuffleId)
     rdmaShuffleData.wrapperShuffleDataFile(mapIdx, mapId, lengths)
