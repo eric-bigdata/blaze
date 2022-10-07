@@ -298,7 +298,7 @@ public class ArrowShuffleWriter301<K, V>
       final ShuffleMapOutputWriter mapWriter =
           shuffleExecutorComponents.createMapOutputWriter(
               shuffleId, mapId, partitioner.numPartitions());
-      return mapWriter.commitAllPartitions(getChecksumValues(partitionChecksums));
+      return mapWriter.commitAllPartitions(getChecksumValues(partitionChecksums)).getPartitionLengths();
     } else if (spills.length == 1) {
       Optional<SingleSpillShuffleMapOutputWriter> maybeSingleFileWriter =
           shuffleExecutorComponents.createSingleFileMapOutputWriter(shuffleId, mapId);
@@ -363,7 +363,7 @@ public class ArrowShuffleWriter301<K, V>
       // to be counted as shuffle write, but this will lead to double-counting of the final
       // SpillInfo's bytes.
       writeMetrics.decBytesWritten(spills[spills.length - 1].file.length());
-      partitionLengths = mapWriter.commitAllPartitions(getChecksumValues(partitionChecksums));
+      partitionLengths = mapWriter.commitAllPartitions(getChecksumValues(partitionChecksums)).getPartitionLengths();
     } catch (Exception e) {
       try {
         mapWriter.abort(e);
