@@ -91,12 +91,8 @@ case class IpcInputStreamIterator(
     val is = new LimitedInputStream(Channels.newInputStream(channel), currentIpcLength, false)
     currentLimitedInputStream = is
 
-    if (decompressingNeeded) {
-      val zs = ArrowShuffleManager301.compressionCodecForShuffling.compressedInputStream(is)
-      Channels.newChannel(zs)
-    } else {
-      Channels.newChannel(is)
-    }
+    Channels.newChannel(is)
+
   }
 
   private def closeInputStream(): Unit =

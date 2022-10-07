@@ -268,7 +268,7 @@ private[spark] class DiskBlockArrowIPCWriter(
       mcs.write(ipcLengthBuffer.array()) // ipc length placeholder
 
       val channel = Channels.newChannel(
-        ArrowShuffleManager301.compressionCodecForShuffling.compressedOutputStream(mcs))
+        mcs)
       writer = new ArrowStreamWriter(root, new MapDictionaryProvider(), channel)
       writer.start()
     }
