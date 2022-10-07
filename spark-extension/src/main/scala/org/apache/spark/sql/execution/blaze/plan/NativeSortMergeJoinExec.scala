@@ -131,4 +131,8 @@ case class NativeSortMergeJoinExec(
       left,
       right,
       isSkewJoin = false).canonicalized
+
+  override protected def withNewChildrenInternal(newLeft: SparkPlan, newRight: SparkPlan)
+  : NativeSortMergeJoinExec =
+    copy(left = newLeft, right = newRight)
 }
