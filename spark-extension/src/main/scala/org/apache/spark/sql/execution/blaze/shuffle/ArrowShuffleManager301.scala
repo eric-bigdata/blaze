@@ -152,7 +152,7 @@ class ArrowShuffleManager301(conf: SparkConf) extends ShuffleManager with Loggin
       shouldBatchFetch = canUseBatchFetch(startPartition, endPartition, context))
   }
 
-  override def getReaderForRange[K, C](
+  override def getReader[K, C](
       handle: ShuffleHandle,
       startMapIndex: Int,
       endMapIndex: Int,
