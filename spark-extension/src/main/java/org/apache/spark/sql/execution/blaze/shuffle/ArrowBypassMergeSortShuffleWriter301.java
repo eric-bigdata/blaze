@@ -16,6 +16,8 @@
 
 package org.apache.spark.sql.execution.blaze.shuffle;
 
+import java.util.zip.Checksum;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closeables;
 import java.io.File;
@@ -205,10 +207,10 @@ final class ArrowBypassMergeSortShuffleWriter301<K, V>
     return partitionLengths;
   }
 
-  @VisibleForTesting
-  long[] getPartitionLengths() {
-    return partitionLengths;
-  }
+//  @VisibleForTesting
+//  long[] getPartitionLengths() {
+//    return partitionLengths;
+//  }
 
   /**
    * Concatenate all of the per-partition files into a single combined file.

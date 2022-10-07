@@ -16,6 +16,8 @@
 
 package org.apache.spark.shuffle.sort;
 
+import java.util.zip.Checksum;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closeables;
@@ -110,7 +112,6 @@ public class ArrowShuffleWriter301<K, V>
   private boolean stopping = false;
 
   private long[] partitionLengths;
-  /** Checksum calculator for each partition. Empty when shuffle checksum disabled. */
   private final Checksum[] partitionChecksums;
 
   private final int numPartitions;
@@ -362,7 +363,7 @@ public class ArrowShuffleWriter301<K, V>
       // to be counted as shuffle write, but this will lead to double-counting of the final
       // SpillInfo's bytes.
       writeMetrics.decBytesWritten(spills[spills.length - 1].file.length());
-      partitionLengths = mapWriter.commitAllPartitions(partitionLengths);
+      partitionLengths = mapWriter.commitAllPartitions(partitionChecksums);
     } catch (Exception e) {
       try {
         mapWriter.abort(e);
