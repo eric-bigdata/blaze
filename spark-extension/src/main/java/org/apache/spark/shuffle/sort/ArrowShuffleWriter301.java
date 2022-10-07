@@ -142,7 +142,7 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V>
         (int) (long) sparkConf.get(package$.MODULE$.SHUFFLE_FILE_BUFFER_SIZE()) * 1024;
     this.maxRecordsPerBatch = sparkConf.getInt("spark.blaze.batchSize", 10000);
     this.partitionChecksums = createPartitionChecksums(numPartitions, conf);
-    // open();
+    open();
   }
 
   private static OutputStream openStreamUnchecked(ShufflePartitionWriter writer) {
@@ -150,6 +150,15 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V>
       return writer.openStream();
     } catch (IOException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private static Checksum[] createPartitionChecksums(int numPartitions, SparkConf conf) {
+    if ((boolean) conf.get(package$.MODULE$.SHUFFLE_CHECKSUM_ENABLED())) {
+      String checksumAlgorithm = conf.get(package$.MODULE$.SHUFFLE_CHECKSUM_ALGORITHM());
+      return ShuffleChecksumHelper.createPartitionChecksums(numPartitions, checksumAlgorithm);
+    } else {
+      return ShuffleChecksumHelper.EMPTY_CHECKSUM;
     }
   }
 
