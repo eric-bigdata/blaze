@@ -248,7 +248,7 @@ final class ArrowBypassMergeSortShuffleWriter301<K, V>
       }
       partitionWriters = null;
     }
-    return mapOutputWriter.commitAllPartitions(partitionChecksums);
+    return mapOutputWriter.commitAllPartitions(getChecksumValues(partitionChecksums));
   }
 
   private void writePartitionedDataWithChannel(File file, WritableByteChannelWrapper outputChannel)
