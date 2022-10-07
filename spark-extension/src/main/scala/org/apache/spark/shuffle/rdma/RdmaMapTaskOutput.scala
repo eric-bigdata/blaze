@@ -23,9 +23,9 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.shuffle.sort.RdmaShuffleManager
 
 object RdmaMapTaskOutput {
-  private[shuffle] val ENTRY_SIZE = 8 + 4 + 4
+  val ENTRY_SIZE = 8 + 4 + 4
   // Only address and key. For map output we don't need a length
-  private[shuffle] val MAP_ENTRY_SIZE = 8 + 4
+  val MAP_ENTRY_SIZE = 8 + 4
 }
 
 class RdmaMapTaskOutput private[shuffle](

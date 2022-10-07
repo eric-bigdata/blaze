@@ -24,7 +24,8 @@ import org.apache.spark.scheduler.{SparkListener, SparkListenerBlockManagerRemov
 import org.apache.spark.shuffle._
 import org.apache.spark.shuffle.api.ShuffleExecutorComponents
 import org.apache.spark.shuffle.rdma.{RdmaAnnounceRdmaShuffleManagersRpcMsg, RdmaBaseShuffleHandle, RdmaBuffer, RdmaBufferManager, RdmaBypassShuffleHandle, RdmaByteBufferManagedBuffer, RdmaChannel, RdmaCompletionListener, RdmaMapTaskOutput, RdmaNode, RdmaRegisteredBuffer, RdmaRpcMsg, RdmaSerializedShuffleHandle, RdmaShuffleBlockResolver, RdmaShuffleConf, RdmaShuffleManagerHelloRpcMsg, RdmaShuffleManagerId, RdmaShuffleReader, RdmaShuffleReaderStats}
-import org.apache.spark.shuffle.sort.{BypassMergeSortShuffleHandle, RdmaShuffleManager, SerializedShuffleHandle, SortShuffleManager, SortShuffleWriter, UnsafeShuffleWriter}
+import org.apache.spark.shuffle.sort.{BypassMergeSortShuffleHandle, BypassMergeSortShuffleWriter,
+  RdmaShuffleManager, SerializedShuffleHandle, SortShuffleManager, SortShuffleWriter, UnsafeShuffleWriter}
 import org.apache.spark.storage.BlockManagerId
 import org.apache.spark.util.Utils
 
