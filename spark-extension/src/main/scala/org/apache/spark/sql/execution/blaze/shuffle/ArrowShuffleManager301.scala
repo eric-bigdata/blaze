@@ -36,7 +36,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
-private[spark] class ArrowShuffleManager301(conf: SparkConf, isDriver: Boolean)
+private[spark] class ArrowShuffleManager301(val conf: SparkConf, isDriver: Boolean)
   extends SortShuffleManager(conf)
     with Logging {
 
