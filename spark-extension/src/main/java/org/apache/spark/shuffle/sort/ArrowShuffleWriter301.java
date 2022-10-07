@@ -141,7 +141,7 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V>
     this.inputBufferSizeInBytes =
         (int) (long) sparkConf.get(package$.MODULE$.SHUFFLE_FILE_BUFFER_SIZE()) * 1024;
     this.maxRecordsPerBatch = sparkConf.getInt("spark.blaze.batchSize", 10000);
-    this.partitionChecksums = createPartitionChecksums(numPartitions, conf);
+    this.partitionChecksums = createChecksums(numPartitions, conf);
     open();
   }
 
@@ -153,7 +153,7 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V>
     }
   }
 
-  private static Checksum[] createPartitionChecksums(int numPartitions, SparkConf conf) {
+  private static Checksum[] createChecksums(int numPartitions, SparkConf conf) {
     if ((boolean) conf.get(package$.MODULE$.SHUFFLE_CHECKSUM_ENABLED())) {
       String checksumAlgorithm = conf.get(package$.MODULE$.SHUFFLE_CHECKSUM_ALGORITHM());
       return ShuffleChecksumHelper.createPartitionChecksums(numPartitions, checksumAlgorithm);
