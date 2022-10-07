@@ -25,8 +25,8 @@ import org.apache.spark.shuffle.{BaseShuffleHandle, IndexShuffleBlockResolver}
 import org.apache.spark.shuffle.rdma.writer.wrapper.RdmaWrapperShuffleData
 import org.apache.spark.shuffle.sort.{ArrowShuffleManager301, RdmaShuffleManager}
 
-class RdmaShuffleBlockResolver(rdmaShuffleManager: RdmaShuffleManager)
-    extends IndexShuffleBlockResolver(rdmaShuffleManager.conf) with Logging {
+class ArrowRdmaShuffleBlockResolver(arrowShuffleManager301: ArrowShuffleManager301)
+    extends IndexShuffleBlockResolver(arrowShuffleManager301.conf) with Logging {
   private val rdmaShuffleDataMap = new ConcurrentHashMap[Int, RdmaWrapperShuffleData]
 
   def removeShuffle(shuffleId: Int): Unit = {
@@ -55,7 +55,7 @@ class RdmaShuffleBlockResolver(rdmaShuffleManager: RdmaShuffleManager)
     val mapIdx = TaskContext.getPartitionId()
     val numPartitions = lengths.length
     rdmaShuffleDataMap.putIfAbsent(shuffleId,
-      new RdmaWrapperShuffleData(shuffleId, numPartitions, rdmaShuffleManager))
+      new RdmaWrapperShuffleData(shuffleId, numPartitions, arrowShuffleManager301))
 
     val rdmaShuffleData = getRdmaShuffleData(shuffleId)
     rdmaShuffleData.wrapperShuffleDataFile(mapIdx, mapId, lengths)
@@ -65,7 +65,7 @@ class RdmaShuffleBlockResolver(rdmaShuffleManager: RdmaShuffleManager)
       asInstanceOf[RdmaWrapperShuffleData].
       getRdmaMappedFileForMapId(mapIdx).getRdmaMapTaskOutput
 
-    rdmaShuffleManager.publishMapTaskOutput(shuffleId, mapId, mapIdx, rdmaMapTaskOutput)
+    arrowShuffleManager301.publishMapTaskOutput(shuffleId, mapId, mapIdx, rdmaMapTaskOutput)
 
   }
 

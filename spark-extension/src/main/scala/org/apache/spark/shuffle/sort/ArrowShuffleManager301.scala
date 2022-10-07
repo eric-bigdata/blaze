@@ -41,7 +41,7 @@ private[spark] class ArrowShuffleManager301(val conf: SparkConf, isDriver: Boole
   import RdmaShuffleManager._
 
   val rdmaShuffleConf = new RdmaShuffleConf(conf)
-  override val shuffleBlockResolver = new RdmaShuffleBlockResolver(this)
+  override val shuffleBlockResolver = new ArrowRdmaShuffleBlockResolver(this)
   private lazy val shuffleExecutorComponents = loadShuffleExecutorComponents(conf)
   private var localRdmaShuffleManagerId: Option[RdmaShuffleManagerId] = None
   private var rdmaNode: Option[RdmaNode] = None
