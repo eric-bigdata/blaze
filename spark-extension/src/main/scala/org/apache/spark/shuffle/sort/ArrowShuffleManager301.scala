@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package org.apache.spark.sql.execution.blaze.shuffle
+package org.apache.spark.shuffle.sort
 
-import java.util.concurrent.ConcurrentHashMap
-import scala.collection.JavaConverters._
-import org.apache.spark.{ShuffleDependency, SparkConf, SparkContext, SparkEnv, TaskContext}
+import org.apache.spark._
 import org.apache.spark.internal.Logging
 import org.apache.spark.scheduler.{SparkListener, SparkListenerBlockManagerRemoved}
 import org.apache.spark.shuffle._
 import org.apache.spark.shuffle.api.ShuffleExecutorComponents
-import org.apache.spark.shuffle.rdma.{RdmaAnnounceRdmaShuffleManagersRpcMsg, RdmaBaseShuffleHandle, RdmaBuffer, RdmaBufferManager, RdmaBypassShuffleHandle, RdmaByteBufferManagedBuffer, RdmaChannel, RdmaCompletionListener, RdmaMapTaskOutput, RdmaNode, RdmaRegisteredBuffer, RdmaRpcMsg, RdmaSerializedShuffleHandle, RdmaShuffleBlockResolver, RdmaShuffleConf, RdmaShuffleManagerHelloRpcMsg, RdmaShuffleManagerId, RdmaShuffleReader, RdmaShuffleReaderStats}
-import org.apache.spark.shuffle.sort.{BypassMergeSortShuffleHandle, BypassMergeSortShuffleWriter,
-  RdmaShuffleManager, SerializedShuffleHandle, SortShuffleManager, SortShuffleWriter, UnsafeShuffleWriter}
+import org.apache.spark.shuffle.rdma._
 import org.apache.spark.storage.BlockManagerId
 import org.apache.spark.util.Utils
 
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
+import java.util.concurrent.ConcurrentHashMap
+import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}

@@ -25,7 +25,6 @@ import java.nio.ByteBuffer
 import java.nio.channels.Channels
 import java.nio.channels.ClosedByInterruptException
 import java.nio.ByteOrder
-
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.VectorSchemaRoot
 import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider
@@ -42,6 +41,7 @@ import org.apache.spark.storage.FileSegment
 import org.apache.spark.storage.TimeTrackingOutputStream
 import org.apache.spark.util.Utils
 import org.apache.spark.SparkEnv
+import org.apache.spark.shuffle.sort.ArrowShuffleManager301
 
 /**
  * A class for writing JVM objects directly to a file on disk. This class allows data to be appended

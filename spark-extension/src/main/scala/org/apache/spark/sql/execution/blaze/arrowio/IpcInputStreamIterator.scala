@@ -26,7 +26,7 @@ import java.nio.ByteOrder
 import org.apache.spark.internal.Logging
 import org.apache.spark.network.util.LimitedInputStream
 import org.apache.spark.TaskContext
-import org.apache.spark.sql.execution.blaze.shuffle.ArrowShuffleManager301
+import org.apache.spark.shuffle.sort.ArrowShuffleManager301
 
 case class IpcInputStreamIterator(
     var in: InputStream,

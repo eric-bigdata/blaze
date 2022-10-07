@@ -23,8 +23,7 @@ import org.apache.spark.TaskContext
 import org.apache.spark.internal.Logging
 import org.apache.spark.shuffle.{BaseShuffleHandle, IndexShuffleBlockResolver}
 import org.apache.spark.shuffle.rdma.writer.wrapper.RdmaWrapperShuffleData
-import org.apache.spark.shuffle.sort.RdmaShuffleManager
-import org.apache.spark.sql.execution.blaze.shuffle.ArrowShuffleManager301
+import org.apache.spark.shuffle.sort.{ArrowShuffleManager301, RdmaShuffleManager}
 
 class RdmaShuffleBlockResolver(arrowShuffleManager301: ArrowShuffleManager301)
     extends IndexShuffleBlockResolver(arrowShuffleManager301.conf) with Logging {
