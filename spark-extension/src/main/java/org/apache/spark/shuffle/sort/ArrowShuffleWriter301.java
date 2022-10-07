@@ -113,7 +113,7 @@ public class ArrowShuffleWriter301<K, V>
   private long[] partitionLengths;
   private final Checksum[] partitionChecksums;
 
-  private final int numPartitions;
+  private int numPartitions;
 
   public ArrowShuffleWriter301(
       BlockManager blockManager,
@@ -124,13 +124,13 @@ public class ArrowShuffleWriter301<K, V>
       SparkConf sparkConf,
       ShuffleWriteMetricsReporter writeMetrics,
       ShuffleExecutorComponents shuffleExecutorComponents) {
-    this.numPartitions = handle.dependency().partitioner().numPartitions();
-    if (numPartitions > SortShuffleManager.MAX_SHUFFLE_OUTPUT_PARTITIONS_FOR_SERIALIZED_MODE()) {
-      throw new IllegalArgumentException(
-          "UnsafeShuffleWriter can only be used for shuffles with at most "
-              + SortShuffleManager.MAX_SHUFFLE_OUTPUT_PARTITIONS_FOR_SERIALIZED_MODE()
-              + " reduce partitions");
-    }
+//    this.numPartitions = handle.dependency().partitioner().numPartitions();
+//    if (numPartitions > SortShuffleManager.MAX_SHUFFLE_OUTPUT_PARTITIONS_FOR_SERIALIZED_MODE()) {
+//      throw new IllegalArgumentException(
+//          "UnsafeShuffleWriter can only be used for shuffles with at most "
+//              + SortShuffleManager.MAX_SHUFFLE_OUTPUT_PARTITIONS_FOR_SERIALIZED_MODE()
+//              + " reduce partitions");
+//    }
     this.blockManager = blockManager;
     this.memoryManager = memoryManager;
     this.mapId = mapId;
@@ -138,6 +138,7 @@ public class ArrowShuffleWriter301<K, V>
     this.shuffleId = dep.shuffleId();
     this.serializer = dep.serializer().newInstance();
     this.partitioner = dep.partitioner();
+    this.numPartitions = partitioner.numPartitions()
     this.schema = ((ShuffleDependencySchema) dep).schema();
     this.unsafeProjection = UnsafeProjection.create(this.schema);
     this.writeMetrics = writeMetrics;
