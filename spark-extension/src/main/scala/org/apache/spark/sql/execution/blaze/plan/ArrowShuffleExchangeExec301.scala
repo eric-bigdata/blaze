@@ -27,6 +27,7 @@ import java.util.UUID
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 import org.apache.spark._
 import org.apache.spark.internal.config
@@ -56,6 +57,7 @@ import org.apache.spark.sql.catalyst.expressions.UnsafeRow
 import org.apache.spark.sql.catalyst.expressions.codegen.LazilyGeneratedOrdering
 import org.apache.spark.sql.catalyst.plans.logical.Statistics
 import org.apache.spark.sql.catalyst.plans.physical._
+import org.apache.spark.sql.catalyst.trees.TreeNode
 import org.apache.spark.sql.execution._
 import org.apache.spark.sql.execution.exchange.ShuffleExchangeExec
 import org.apache.spark.sql.execution.exchange.ShuffleExchangeLike
@@ -209,6 +211,23 @@ case class ArrowShuffleExchangeExec301(
       // to create TreeNodeException. Hence, wrap exception only if it is not SparkException.
       case NonFatal(e) if !e.isInstanceOf[SparkException] =>
         throw new TreeNodeException(tree, msg, e)
+    }
+  }
+
+  class TreeNodeException[TreeType <: TreeNode[_]](
+                                                    @transient val tree: TreeType,
+                                                    msg: String,
+                                                    cause: Throwable)
+    extends Exception(msg, cause) {
+
+    val treeString = tree.toString
+
+    // Yes, this is the same as a default parameter, but... those don't seem to work with SBT
+    // external project dependencies for some reason.
+    def this(tree: TreeType, msg: String) = this(tree, msg, null)
+
+    override def getMessage: String = {
+      s"${super.getMessage}, tree:${if (treeString contains "\n") "\n" else " "}$tree"
     }
   }
 
