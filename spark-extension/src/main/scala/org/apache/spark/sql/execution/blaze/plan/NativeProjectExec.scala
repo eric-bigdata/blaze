@@ -77,6 +77,9 @@ case class NativeProjectExec(
   }
 
   override def doCanonicalize(): SparkPlan = ProjectExec(projectList, child).canonicalized
+
+  override protected def withNewChildInternal(newChild: SparkPlan): NativeProjectExec =
+    copy(child = newChild)
 }
 
 object NativeProjectExec {

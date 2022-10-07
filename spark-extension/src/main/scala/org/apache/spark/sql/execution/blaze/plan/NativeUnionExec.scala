@@ -120,4 +120,7 @@ case class NativeUnionExec(override val children: Seq[SparkPlan])
     StructType(output.map(a => StructField(a.toString(), a.dataType, a.nullable, a.metadata))))
 
   override def doCanonicalize(): SparkPlan = UnionExec(children).canonicalized
+
+  override protected def withNewChildInternal(newChild: SparkPlan): NativeUnionExec =
+    copy(child = newChild)
 }

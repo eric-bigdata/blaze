@@ -97,4 +97,7 @@ case class NativeSortExec(
 
   override def doCanonicalize(): SparkPlan =
     SortExec(sortOrder, global, child, testSpillFrequency = 0).canonicalized
+
+  override protected def withNewChildInternal(newChild: SparkPlan): NativeSortExec =
+    copy(child = newChild)
 }

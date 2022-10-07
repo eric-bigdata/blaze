@@ -133,4 +133,7 @@ case class NativeBroadcastHashJoinExec(
       condition = None,
       left,
       right).canonicalized
+
+  override protected def withNewChildInternal(newChild: SparkPlan): NativeBroadcastHashJoinExec =
+    copy(child = newChild)
 }

@@ -275,6 +275,9 @@ case class ArrowShuffleExchangeExec301(
 
   override def doCanonicalize(): SparkPlan =
     ShuffleExchangeExec(outputPartitioning, child, shuffleOrigin).canonicalized
+
+  override protected def withNewChildInternal(newChild: SparkPlan): ArrowShuffleExchangeExec301 =
+    copy(child = newChild)
 }
 
 object ArrowShuffleExchangeExec301 {

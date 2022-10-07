@@ -58,6 +58,9 @@ case class NativeRenameColumnsExec(override val child: SparkPlan, renamedColumnN
   }
 
   override def doCanonicalize(): SparkPlan = child.canonicalized
+
+  override protected def withNewChildInternal(newChild: SparkPlan): NativeRenameColumnsExec =
+    copy(child = newChild)
 }
 
 object NativeRenameColumnsExec {

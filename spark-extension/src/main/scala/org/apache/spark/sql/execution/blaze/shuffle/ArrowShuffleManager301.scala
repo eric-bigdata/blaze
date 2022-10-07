@@ -135,22 +135,22 @@ class ArrowShuffleManager301(conf: SparkConf) extends ShuffleManager with Loggin
    * Get a reader for a range of reduce partitions (startPartition to endPartition-1, inclusive).
    * Called on executors by reduce tasks.
    */
-  override def getReader[K, C](
-      handle: ShuffleHandle,
-      startPartition: Int,
-      endPartition: Int,
-      context: TaskContext,
-      metrics: ShuffleReadMetricsReporter): ShuffleReader[K, C] = {
-    val blocksByAddress = () =>
-      SparkEnv.get.mapOutputTracker
-        .getMapSizesByExecutorId(handle.shuffleId, 0, Int.MaxValue, startPartition, endPartition)
-    new ArrowBlockStoreShuffleReader301(
-      handle.asInstanceOf[BaseShuffleHandle[K, _, C]],
-      blocksByAddress,
-      context,
-      metrics,
-      shouldBatchFetch = canUseBatchFetch(startPartition, endPartition, context))
-  }
+//  override def getReader[K, C](
+//      handle: ShuffleHandle,
+//      startPartition: Int,
+//      endPartition: Int,
+//      context: TaskContext,
+//      metrics: ShuffleReadMetricsReporter): ShuffleReader[K, C] = {
+//    val blocksByAddress = () =>
+//      SparkEnv.get.mapOutputTracker
+//        .getMapSizesByExecutorId(handle.shuffleId, 0, Int.MaxValue, startPartition, endPartition)
+//    new ArrowBlockStoreShuffleReader301(
+//      handle.asInstanceOf[BaseShuffleHandle[K, _, C]],
+//      blocksByAddress,
+//      context,
+//      metrics,
+//      shouldBatchFetch = canUseBatchFetch(startPartition, endPartition, context))
+//  }
 
   override def getReader[K, C](
       handle: ShuffleHandle,

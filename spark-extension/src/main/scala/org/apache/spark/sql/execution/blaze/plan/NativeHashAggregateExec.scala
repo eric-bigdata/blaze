@@ -91,9 +91,9 @@ case class NativeHashAggregateExec(
     child.output ++ aggregateBufferAttributes ++ aggregateAttributes ++
       aggregateExpressions.flatMap(_.aggregateFunction.inputAggBufferAttributes)
 
-  protected val aggregateBufferAttributes: Seq[AttributeReference] = {
-    aggregateExpressions.flatMap(_.aggregateFunction.aggBufferAttributes)
-  }
+//  protected val aggregateBufferAttributes: Seq[AttributeReference] = {
+//    aggregateExpressions.flatMap(_.aggregateFunction.aggBufferAttributes)
+//  }
 
   override def doExecuteNative(): NativeRDD = {
     val inputRDD = NativeSupports.executeNative(child)
@@ -205,4 +205,7 @@ case class NativeHashAggregateExec(
   }
 
   override def simpleStringWithNodeId(): String = super.simpleStringWithNodeId()
+
+  override protected def withNewChildInternal(newChild: SparkPlan): NativeHashAggregateExec =
+    copy(child = newChild)
 }

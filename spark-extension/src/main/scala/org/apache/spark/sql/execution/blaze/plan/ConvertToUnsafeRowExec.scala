@@ -92,4 +92,7 @@ case class ConvertToUnsafeRowExec(override val child: SparkPlan)
   override def inputRDDs(): Seq[RDD[InternalRow]] = inputRDD :: Nil
 
   override def doCanonicalize(): SparkPlan = child.canonicalized
+
+  override protected def withNewChildInternal(newChild: SparkPlan): ConvertToUnsafeRowExec =
+    copy(child = newChild)
 }

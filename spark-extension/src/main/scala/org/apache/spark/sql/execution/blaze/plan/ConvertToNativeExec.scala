@@ -95,4 +95,7 @@ case class ConvertToNativeExec(override val child: SparkPlan)
   }
 
   override def doCanonicalize(): SparkPlan = child.canonicalized
+
+  override protected def withNewChildInternal(newChild: SparkPlan): ConvertToNativeExec =
+    copy(child = newChild)
 }
