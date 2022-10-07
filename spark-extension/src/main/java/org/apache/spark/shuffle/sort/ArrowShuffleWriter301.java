@@ -16,8 +16,6 @@
 
 package org.apache.spark.shuffle.sort;
 
-import java.util.zip.Checksum;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Closeables;
@@ -32,6 +30,7 @@ import java.nio.channels.WritableByteChannel;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Optional;
+import java.util.zip.Checksum;
 import javax.annotation.Nullable;
 import org.apache.spark.Partitioner;
 import org.apache.spark.ShuffleDependency;
@@ -308,7 +307,8 @@ public class ArrowShuffleWriter301<K, V>
         partitionLengths = spills[0].partitionLengths;
         logger.debug(
             "Merge shuffle spills for mapId {} with length {}", mapId, partitionLengths.length);
-        maybeSingleFileWriter.get().transferMapSpillFile(spills[0].file, partitionLengths, partitionChecksums);
+        maybeSingleFileWriter.get().transferMapSpillFile(spills[0].file, partitionLengths,
+                getChecksumValues(partitionChecksums));
       } else {
         partitionLengths = mergeSpillsUsingStandardWriter(spills);
       }
