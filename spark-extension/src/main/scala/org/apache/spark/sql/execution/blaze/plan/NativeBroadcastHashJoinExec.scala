@@ -135,6 +135,6 @@ case class NativeBroadcastHashJoinExec(
       right).canonicalized
 
   override protected def withNewChildrenInternal(newLeft: SparkPlan, newRight: SparkPlan)
-    : NativeBroadcastHashJoin =
+    : NativeBroadcastHashJoinExec =
       copy(left = newLeft, right = newRight)
 }
