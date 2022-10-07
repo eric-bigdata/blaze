@@ -41,6 +41,7 @@ import org.apache.spark.io.CompressionCodec;
 import org.apache.spark.io.CompressionCodec$;
 import org.apache.spark.io.NioBufferedFileInputStream;
 import org.apache.spark.memory.TaskMemoryManager;
+import org.apache.spark.network.shuffle.checksum.ShuffleChecksumHelper;
 import org.apache.spark.network.util.LimitedInputStream;
 import org.apache.spark.scheduler.MapStatus;
 import org.apache.spark.scheduler.MapStatus$;
@@ -71,7 +72,9 @@ import scala.reflect.ClassTag;
 import scala.reflect.ClassTag$;
 
 @Private
-public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V> {
+public class ArrowShuffleWriter301<K, V>
+        extends ShuffleWriter<K, V>
+        implements ShuffleChecksumSupport {
 
   @VisibleForTesting static final int DEFAULT_INITIAL_SER_BUFFER_SIZE = 1024 * 1024;
   private static final Logger logger = LoggerFactory.getLogger(ArrowShuffleWriter301.class);
@@ -105,6 +108,12 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V> {
    */
   private boolean stopping = false;
 
+  private long[] partitionLengths;
+  /** Checksum calculator for each partition. Empty when shuffle checksum disabled. */
+  private final Checksum[] partitionChecksums;
+
+  private final int numPartitions;
+
   public ArrowShuffleWriter301(
       BlockManager blockManager,
       TaskMemoryManager memoryManager,
@@ -114,7 +123,7 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V> {
       SparkConf sparkConf,
       ShuffleWriteMetricsReporter writeMetrics,
       ShuffleExecutorComponents shuffleExecutorComponents) {
-    final int numPartitions = handle.dependency().partitioner().numPartitions();
+    this.numPartitions = handle.dependency().partitioner().numPartitions();
     if (numPartitions > SortShuffleManager.MAX_SHUFFLE_OUTPUT_PARTITIONS_FOR_SERIALIZED_MODE()) {
       throw new IllegalArgumentException(
           "UnsafeShuffleWriter can only be used for shuffles with at most "
@@ -140,6 +149,7 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V> {
     this.inputBufferSizeInBytes =
         (int) (long) sparkConf.get(package$.MODULE$.SHUFFLE_FILE_BUFFER_SIZE()) * 1024;
     this.maxRecordsPerBatch = sparkConf.getInt("spark.blaze.batchSize", 10000);
+    this.partitionChecksums = createPartitionChecksums(numPartitions, conf);
     open();
   }
 
@@ -179,8 +189,12 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V> {
     // We do this rather than a standard try/catch/re-throw to handle
     // generic throwables.
     boolean success = false;
+    ShuffleMapOutputWriter mapOutputWriter = shuffleExecutorComponents
+            .createMapOutputWriter(shuffleId, mapId, numPartitions);
     try {
       while (records.hasNext()) {
+        partitionLengths = mapOutputWriter.commitAllPartitions(
+                ShuffleChecksumHelper.EMPTY_CHECKSUM_VALUE).getPartitionLengths();
         insertRecordIntoSorter(records.next());
       }
       closeAndWriteOutput();
@@ -282,7 +296,7 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V> {
       final ShuffleMapOutputWriter mapWriter =
           shuffleExecutorComponents.createMapOutputWriter(
               shuffleId, mapId, partitioner.numPartitions());
-      return mapWriter.commitAllPartitions();
+      return mapWriter.commitAllPartitions(partitionChecksums);
     } else if (spills.length == 1) {
       Optional<SingleSpillShuffleMapOutputWriter> maybeSingleFileWriter =
           shuffleExecutorComponents.createSingleFileMapOutputWriter(shuffleId, mapId);
@@ -292,7 +306,7 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V> {
         partitionLengths = spills[0].partitionLengths;
         logger.debug(
             "Merge shuffle spills for mapId {} with length {}", mapId, partitionLengths.length);
-        maybeSingleFileWriter.get().transferMapSpillFile(spills[0].file, partitionLengths);
+        maybeSingleFileWriter.get().transferMapSpillFile(spills[0].file, partitionLengths, partitionChecksums);
       } else {
         partitionLengths = mergeSpillsUsingStandardWriter(spills);
       }
@@ -347,7 +361,7 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V> {
       // to be counted as shuffle write, but this will lead to double-counting of the final
       // SpillInfo's bytes.
       writeMetrics.decBytesWritten(spills[spills.length - 1].file.length());
-      partitionLengths = mapWriter.commitAllPartitions();
+      partitionLengths = mapWriter.commitAllPartitions(partitionLengths);
     } catch (Exception e) {
       try {
         mapWriter.abort(e);
@@ -540,6 +554,11 @@ public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V> {
         sorter.cleanupResources();
       }
     }
+  }
+
+  @Override
+  public long[] getPartitionLengths() {
+    return partitionLengths;
   }
 
   /** Subclass of ByteArrayOutputStream that exposes `buf` directly. */

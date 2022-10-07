@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.util.Optional;
 import javax.annotation.Nullable;
+import org.apache.spark.network.shuffle.checksum.ShuffleChecksumHelper;
 import org.apache.spark.Partitioner;
 import org.apache.spark.ShuffleDependency;
 import org.apache.spark.SparkConf;
@@ -78,7 +79,9 @@ import scala.collection.Iterator;
  *
  * <p>There have been proposals to completely remove this code path; see SPARK-6026 for details.
  */
-final class ArrowBypassMergeSortShuffleWriter301<K, V> extends ShuffleWriter<K, V> {
+final class ArrowBypassMergeSortShuffleWriter301<K, V>
+        extends ShuffleWriter<K, V>
+        implements ShuffleChecksumSupport {
 
   private static final Logger logger =
       LoggerFactory.getLogger(ArrowBypassMergeSortShuffleWriter301.class);
@@ -104,6 +107,9 @@ final class ArrowBypassMergeSortShuffleWriter301<K, V> extends ShuffleWriter<K, 
   private FileSegment[] partitionWriterSegments;
   @Nullable private MapStatus mapStatus;
   private long[] partitionLengths;
+
+  /** Checksum calculator for each partition. Empty when shuffle checksum disabled. */
+  private final Checksum[] partitionChecksums;
 
   /**
    * Are we in the process of stopping? Because map tasks can call stop() with success = true and
@@ -134,6 +140,7 @@ final class ArrowBypassMergeSortShuffleWriter301<K, V> extends ShuffleWriter<K, 
     this.schema = ((ShuffleDependencySchema) dep).schema();
     this.maxRecordsPerBatch = conf.getInt("spark.blaze.shuffle.maxRecordsPerBatch", 8192);
     this.shuffleSync = (boolean) conf.get(package$.MODULE$.SHUFFLE_SYNC());
+    this.partitionChecksums = createPartitionChecksums(numPartitions, conf);
   }
 
   @Override
@@ -143,7 +150,8 @@ final class ArrowBypassMergeSortShuffleWriter301<K, V> extends ShuffleWriter<K, 
         shuffleExecutorComponents.createMapOutputWriter(shuffleId, mapId, numPartitions);
     try {
       if (!records.hasNext()) {
-        partitionLengths = mapOutputWriter.commitAllPartitions();
+        partitionLengths = mapOutputWriter.commitAllPartitions(
+                ShuffleChecksumHelper.EMPTY_CHECKSUM_VALUE).getPartitionLengths();
         mapStatus =
             MapStatus$.MODULE$.apply(blockManager.shuffleServerId(), partitionLengths, mapId);
         return;
@@ -191,6 +199,11 @@ final class ArrowBypassMergeSortShuffleWriter301<K, V> extends ShuffleWriter<K, 
     }
   }
 
+  @Override
+  public long[] getPartitionLengths() {
+    return partitionLengths;
+  }
+
   @VisibleForTesting
   long[] getPartitionLengths() {
     return partitionLengths;
@@ -232,7 +245,7 @@ final class ArrowBypassMergeSortShuffleWriter301<K, V> extends ShuffleWriter<K, 
       }
       partitionWriters = null;
     }
-    return mapOutputWriter.commitAllPartitions();
+    return mapOutputWriter.commitAllPartitions(partitionChecksums);
   }
 
   private void writePartitionedDataWithChannel(File file, WritableByteChannelWrapper outputChannel)
