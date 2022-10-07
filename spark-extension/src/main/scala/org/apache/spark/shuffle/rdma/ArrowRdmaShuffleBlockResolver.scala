@@ -27,16 +27,16 @@ import org.apache.spark.shuffle.sort.{ArrowShuffleManager301, RdmaShuffleManager
 
 class ArrowRdmaShuffleBlockResolver(arrowShuffleManager301: ArrowShuffleManager301)
     extends IndexShuffleBlockResolver(arrowShuffleManager301.conf) with Logging {
-  private val rdmaShuffleDataMap = new ConcurrentHashMap[Int, RdmaWrapperShuffleData]
+  private val rdmaShuffleDataMap = new ConcurrentHashMap[Int, ArrowRdmaWrapperShuffleData]
 
   def removeShuffle(shuffleId: Int): Unit = {
     rdmaShuffleDataMap.remove(shuffleId) match {
-      case r: RdmaWrapperShuffleData => r.dispose()
+      case r: ArrowRdmaWrapperShuffleData => r.dispose()
       case null =>
     }
   }
 
-  def getRdmaShuffleData(shuffleId: ShuffleId): RdmaWrapperShuffleData =
+  def getRdmaShuffleData(shuffleId: ShuffleId): ArrowRdmaWrapperShuffleData =
     rdmaShuffleDataMap.get(shuffleId)
 
   def removeDataByMap(shuffleId: Int, mapIdx: Int): Unit = {
@@ -62,7 +62,7 @@ class ArrowRdmaShuffleBlockResolver(arrowShuffleManager301: ArrowShuffleManager3
 
 
     val rdmaMapTaskOutput = rdmaShuffleData.
-      asInstanceOf[RdmaWrapperShuffleData].
+      asInstanceOf[ArrowRdmaWrapperShuffleData].
       getRdmaMappedFileForMapId(mapIdx).getRdmaMapTaskOutput
 
     arrowShuffleManager301.publishMapTaskOutput(shuffleId, mapId, mapIdx, rdmaMapTaskOutput)
@@ -73,7 +73,7 @@ class ArrowRdmaShuffleBlockResolver(arrowShuffleManager301: ArrowShuffleManager3
 
   def getLocalRdmaPartition(shuffleId: Int, partitionId : Int) : Seq[InputStream] = {
     rdmaShuffleDataMap.get(shuffleId) match {
-      case r: RdmaWrapperShuffleData => r.getInputStreams(partitionId)
+      case r: ArrowRdmaWrapperShuffleData => r.getInputStreams(partitionId)
       case null => Seq.empty
     }
   }
@@ -81,7 +81,7 @@ class ArrowRdmaShuffleBlockResolver(arrowShuffleManager301: ArrowShuffleManager3
   def getLocalRdmaPartition(shuffleId: Int, partitionId : Int,
                             startMapIdx: Int, endMapIdx: Int) : Seq[InputStream] = {
     rdmaShuffleDataMap.get(shuffleId) match {
-      case r: RdmaWrapperShuffleData =>
+      case r: ArrowRdmaWrapperShuffleData =>
         r.getInputStreams(partitionId, startMapIdx, endMapIdx)
       case null => Seq.empty
     }
@@ -91,7 +91,7 @@ class ArrowRdmaShuffleBlockResolver(arrowShuffleManager301: ArrowShuffleManager3
   def getLocalRdmaPartition(shuffleId: Int, startPartitionId : Int,
                             endPartitionId : Int) : Seq[InputStream] = {
     rdmaShuffleDataMap.get(shuffleId) match {
-      case r: RdmaWrapperShuffleData => r.getInputStreams(startPartitionId, endPartitionId)
+      case r: ArrowRdmaWrapperShuffleData => r.getInputStreams(startPartitionId, endPartitionId)
       case null => Seq.empty
     }
   }
