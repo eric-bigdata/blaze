@@ -42,6 +42,7 @@ import org.apache.spark.io.CompressionCodec$;
 import org.apache.spark.io.NioBufferedFileInputStream;
 import org.apache.spark.memory.TaskMemoryManager;
 import org.apache.spark.network.shuffle.checksum.ShuffleChecksumHelper;
+import org.apache.spark.shuffle.checksum.ShuffleChecksumSupport;
 import org.apache.spark.network.util.LimitedInputStream;
 import org.apache.spark.scheduler.MapStatus;
 import org.apache.spark.scheduler.MapStatus$;
