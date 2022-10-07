@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 import org.apache.spark.Partitioner;
 import org.apache.spark.ShuffleDependency;
 import org.apache.spark.SparkConf;
+import org.apache.spark.SparkException;
 import org.apache.spark.TaskContext;
 import org.apache.spark.annotation.Private;
 import org.apache.spark.internal.config.package$;
@@ -74,10 +75,8 @@ import scala.reflect.ClassTag;
 import scala.reflect.ClassTag$;
 
 @Private
-public class ArrowShuffleWriter301<K, V>
-        extends ShuffleWriter<K, V>
+public class ArrowShuffleWriter301<K, V> extends ShuffleWriter<K, V>
         implements ShuffleChecksumSupport {
-
   @VisibleForTesting static final int DEFAULT_INITIAL_SER_BUFFER_SIZE = 1024 * 1024;
   private static final Logger logger = LoggerFactory.getLogger(ArrowShuffleWriter301.class);
   private static final ClassTag<Object> OBJECT_CLASS_TAG = ClassTag$.MODULE$.Object();
@@ -87,6 +86,7 @@ public class ArrowShuffleWriter301<K, V>
   private final Partitioner partitioner;
   private final ShuffleWriteMetricsReporter writeMetrics;
   private final ShuffleExecutorComponents shuffleExecutorComponents;
+  private final int numPartitions;
   private final int shuffleId;
   private final long mapId;
   private final TaskContext taskContext;
@@ -97,23 +97,20 @@ public class ArrowShuffleWriter301<K, V>
   private final StructType schema;
   private final UnsafeProjection unsafeProjection;
   private final int maxRecordsPerBatch;
-
   @Nullable private MapStatus mapStatus;
   @Nullable private ArrowShuffleExternalSorter301 sorter;
   private long peakMemoryUsedBytes = 0;
   private MyByteArrayOutputStream serBuffer;
   private SerializationStream serOutputStream;
+  private long[] partitionLengths;
+  /** Checksum calculator for each partition. Empty when shuffle checksum disabled. */
+  private final Checksum[] partitionChecksums;
   /**
    * Are we in the process of stopping? Because map tasks can call stop() with success = true and
    * then call stop() with success = false if they get an exception, we want to make sure we don't
    * try deleting files, etc twice.
    */
   private boolean stopping = false;
-
-  private long[] partitionLengths;
-  private final Checksum[] partitionChecksums;
-
-  private int numPartitions;
 
   public ArrowShuffleWriter301(
       BlockManager blockManager,
@@ -123,7 +120,7 @@ public class ArrowShuffleWriter301<K, V>
       TaskContext taskContext,
       SparkConf sparkConf,
       ShuffleWriteMetricsReporter writeMetrics,
-      ShuffleExecutorComponents shuffleExecutorComponents) {
+      ShuffleExecutorComponents shuffleExecutorComponents) throws SparkException {
 //    this.numPartitions = handle.dependency().partitioner().numPartitions();
 //    if (numPartitions > SortShuffleManager.MAX_SHUFFLE_OUTPUT_PARTITIONS_FOR_SERIALIZED_MODE()) {
 //      throw new IllegalArgumentException(
@@ -152,7 +149,7 @@ public class ArrowShuffleWriter301<K, V>
         (int) (long) sparkConf.get(package$.MODULE$.SHUFFLE_FILE_BUFFER_SIZE()) * 1024;
     this.maxRecordsPerBatch = sparkConf.getInt("spark.blaze.batchSize", 10000);
     this.partitionChecksums = createPartitionChecksums(numPartitions, conf);
-    open();
+    // open();
   }
 
   private static OutputStream openStreamUnchecked(ShufflePartitionWriter writer) {
