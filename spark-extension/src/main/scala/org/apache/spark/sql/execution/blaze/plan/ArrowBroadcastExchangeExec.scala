@@ -255,8 +255,8 @@ case class ArrowBroadcastExchangeExec(mode: BroadcastMode, override val child: S
     }
   }
 
-  def withNewChildren(newChildren: Seq[SparkPlan]): SparkPlan =
-    copy(child = newChildren.head)
+  override def withNewChildInternal(newChildren: SparkPlan): SparkPlan =
+    copy(child = newChildren)
 }
 
 object ArrowBroadcastExchangeExec {
